@@ -1,4 +1,6 @@
 import json
+import time
+
 import requests
 from models import Anime, Character, Staff, Studio
 from config import ANIME_URL
@@ -33,44 +35,68 @@ def parse_anime():
                 headers=headers,
                 timeout=10
             )
-            soup = BeautifulSoup(response.json()["content"], "html.parser")
-            urls = soup.findAll("a", {
-                "class": "cover anime-tooltip"
-            })
+            try:
+                soup = BeautifulSoup(response.json()["content"], "html.parser")
+            except:
+                continue
+            urls = soup.findAll("a", {"class": "cover anime-tooltip"})
             for new in urls:
                 url = new["href"]
+                print(url)
                 response_url = requests.get(
                     url,
                     headers=headers,
                     timeout=10
                 )
+                if not response_url.ok:
+                    time.sleep(2)
+                    response_url = requests.get(
+                        url,
+                        headers=headers,
+                        timeout=10
+                    )
+                    if not response_url.ok:
+                        continue
                 soup = BeautifulSoup(response_url.text, "html.parser")
-                div = soup.find("div", {
-                    "class": "c-poster"
-                })
-                name = div('img')[0]["title"]
-                image_url = div('img')[0]["src"]
-                div = soup.findAll("div", {
-                    "class": "value"
-                })
-                type = div[0].text.strip()
-                current_episodes = div[1].text.strip().split(" /")[0]
+                div_name = soup.find("header", {"class": "head"})
+                name = div_name('meta')[0]["content"]
+                print(name)
+                div_image = soup.find("div", {"class": "c-poster"})
+                image_url = div_image('img')[0]["src"]
+                div = soup.findAll("div", {"class": "value"})
+                try:
+                    type = div[0].text.strip()
+                except:
+                    type = None
+                try:
+                    current_episodes = div[1].text.strip().split(" /")[0]
+                except:
+                    current_episodes = None
                 try:
                     total_episodes = div[1].text.strip().split(" /")[1]
                 except:
                     total_episodes = None
-
-                # print(total_episodes)
-                next_episode_date = div[2].text.strip()
-                started = div[4].text.strip()
-                genres = div[5].text.strip()
-                # for _i in genres:
-                #     # print(_i.find("span", {"class": "genre-ru"}))
-                #     print("span", _i)
-                for specialChar in LatinAlphabet:
-                    genres = genres.replace(specialChar, '')
-                for specialChar in RusUpperAlphabet:
-                    genres = genres.replace(specialChar, ' '+specialChar)
+                try:
+                    next_episode_date = div[2].text.strip()
+                except:
+                    next_episode_date = None
+                try:
+                    started = div[4].text.strip()
+                except:
+                    started = None
+                try:
+                    for _i in div[5]:
+                        genres = _i.find("span", {"class": "genre-ru"}).text
+                except:
+                    try:
+                        for _i in div[4]:
+                            genres = _i.find("span", {"class": "genre-ru"}).text
+                    except:
+                        try:
+                            for _i in div[3]:
+                                genres = _i.find("span", {"class": "genre-ru"}).text
+                        except:
+                            genres = None
                 try:
                     rating = div[6].text.strip()
                 except:
@@ -80,31 +106,45 @@ def parse_anime():
                 except:
                     licensed_by = None
                 div_name_rus = soup.find("header", {"class": "head"})
-                name_rus = div_name_rus.find('h1').text.strip().split(" /")[0]
+                try:
+                    name_rus = div_name_rus.find('h1').text.strip().split(" /")[0]
+                except:
+                    name_rus = None
                 div_rating = soup.find("div", {"class": "score-value score-9"})
                 try:
                     score = div_rating.text.strip()
                 except:
                     score = None
+                div_description = soup.find("div", {"class": "b-text_with_paragraphs"})
                 try:
-                    div_description = soup.find("div", {"class": "b-text_with_paragraphs"})
                     description = div_description.text.strip()
                 except:
                     description = None
                 div_studio = soup.findAll("div", {"class": "block"})
-                studio = div_studio[5]("img")[0]["alt"]
+                try:
+                    studio = div_studio[5]("img")[0]["alt"]
+                except:
+                    studio = None
+                related_url = url + "/resources"
+                response_related_url = requests.get(
+                    related_url,
+                    headers=headers,
+                    timeout=10
+                )
+                soup_related = BeautifulSoup(response_related_url.text, "html.parser")
+                # div_related = soup_related.find("div", class_="b-db_entry-variant-list_item")["data-url"]
+                div_related = soup_related.find("div", class_="c-column block_m").findAll(class_="b-db_entry-variant-list_item")
+                related = []
+                for i in div_related:
+                    related.append(i["data-url"]) #creating list, use it in searching urls; and what retries create it in a function; also try/except to if else
 
-                # div_related = soup.find("div", {
-                #     "class": "c-column block_m"
-                # })
-                # print(div_related)
-                div_author = soup.find("div", {"class": "b-db_entry-variant-list_item"})
+                print(related)
+
+                div_author = soup_related.find("div", {"class": "c-column c-authors block_m"})
                 print(div_author)
 
 
-                div_other_names = soup.find("span", {
-                    "class": "other-names"
-                })
+                div_other_names = soup.find("span", {"class": "other-names"})
                 url_name_alt = div_other_names["data-clickloaded-url"]
                 response_url_name_alt = requests.get(
                     url_name_alt,
@@ -112,25 +152,34 @@ def parse_anime():
                     timeout=10
                 )
                 soup = BeautifulSoup(response_url_name_alt.text, "html.parser")
-                div_name_alt = soup.findAll("div", {
-                    "class": "value"
-                })
-                name_alt = div_name_alt[2].text.strip()
-                id=url.split("/")[-1].split("-")[0]
-                print(id, url)
+                div_name_alt = soup.findAll("div", {"class": "value"})
+                try:
+                    name_alt = div_name_alt[2].text.strip()
+                except:
+                    name_alt = None
+                id = url.split("/")[-1].split("-")[0]
                 data.append(
                     Anime(
                         url=url,
-                        id=url.split("/")[-1].split("-")[0],
+                        id=id,  #url.split("/")[-1].split("-")[0]
                         name=name,
                         image_url=image_url,
+                        name_rus=name_rus,
+                        name_alt=name_alt,
+                        type=type,
+                        total_episodes=total_episodes,
+                        current_episodes=current_episodes,
+                        next_episode_date=next_episode_date,
+                        started=started,
+                        genres=genres,
+                        score=score,
+                        rating=rating,
+                        licensed_by=licensed_by,
+                        studio=studio,
+                        description=description,
+
                     )
                 )
-                print(data[0])
-
-
-
-
 
 
 def parse_character():
