@@ -1,35 +1,29 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 
 class Character(BaseModel):
     url: str
-    id: int
-    name: str
-    name_rus: Optional[str]
-    seiyu: Optional[str]
-    description: Optional[str]
-    image_url: str
+    id: List[str]
+    name: Optional[List[str]]
+    name_rus: Optional[List[str]]
+    image_url: Optional[List[str]]
 
 
 class Staff(BaseModel):
     url: str
-    id: int
-    name: str
-    name_rus: str
-    birth_date: Optional[str]
-    occupation: str
-    description: Optional[str]
-    titles: str
-    characters: str
+    id: List[str]
+    name: Optional[List[str]]
+    name_rus: Optional[List[str]]
+    occupation: Optional[List[str]]
     image_url: str
 
 
 class Studio(BaseModel):
-    url: str
-    id: int
-    name: str
-    image_url: str
+    url: Optional[str]
+    id: Optional[str]
+    name: Optional[str]
+    image_url: Optional[str]
 
 
 class Anime(BaseModel):
@@ -47,14 +41,13 @@ class Anime(BaseModel):
     score: Optional[float]
     rating: Optional[str]
     licensed_by: Optional[str]
-    studio: Optional[str]
+    studio: Optional[Studio]
     description: Optional[str]
-    related: Optional[str]
-    author: Optional[str]  #
-    main_heroes: Optional[str]
-    secondary_heroes: Optional[str]
-    scenes: Optional[str]
-    videos: Optional[str]
-    similar: Optional[str]  #
+    related: Optional[List[str]]
+    author: Optional[Staff]  #staff
+    main_heroes: Optional[Character] #character
+    scenes: Optional[List[str]]
+    videos: Optional[List[str]]
+    similar: Optional[List[str]]  #
     image_url: str
 
