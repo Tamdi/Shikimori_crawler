@@ -259,7 +259,7 @@ def p_studio(url):
 def parse_anime():
     data = []
     urls = anime_urls()
-    for url in urls: #kings rating
+    for url in urls:
         related = []
         scenes = []
         videos = []

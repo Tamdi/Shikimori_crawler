@@ -16,8 +16,8 @@ def return_anime():
         for n in response_anime.anime:
             anime.append(
                 {
-                    'id': n.id,
                     'url': n.url,
+                    'id': n.id,
                     'name': n.name,
                     'name_rus': n.name_rus,
                     'name_alt': n.name_alt,
