@@ -44,7 +44,7 @@ def anime_urls():
 
 def p_characters(url):
     data = []
-    while True:
+    while url:
         id = []
         name = []
         name_rus = []
@@ -74,39 +74,39 @@ def p_characters(url):
         try:
             div_character = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class": "cc m0 to-process"})
         except:
-            continue
+            div_character = []
         try:
             div_image_url = div_character.find("span", {"class": "image-cutter"})
         except:
-            continue
+            div_image_url = []
         try:
             div_name = div_character.find("span", {"class": "name-en"})
         except:
-            continue
+            div_name = []
         try:
             div_name_rus = div_character.find("span", {"class": "name-ru"})
         except:
-            continue
+            div_name_rus = []
         for i in div_character:
             try:
                 id.append(i["id"])
             except:
-                id.append(None)
+                print("Not Found Characters id")
         for i in div_name:
             try:
                 name.append(i)
             except:
-                name.append(None)
+                print("Not Found Characters name")
         for i in div_name_rus:
             try:
                 name_rus.append(i)
             except:
-                name_rus.append(None)
+                print("Not Found Characters name_rus")
         for i in div_image_url:
             try:
                 image_url.append(i["src"])
             except:
-                image_url = None
+                print("Not Found Characters image_url")
         data.append(
             Character(
                 url=url,
@@ -122,7 +122,7 @@ def p_characters(url):
 
 def p_staff(url):
     data = []
-    while True:
+    while url:
         id = []
         name = []
         name_rus = []
@@ -154,46 +154,50 @@ def p_staff(url):
         try:
             div_id = div_authors.findAll("div", {"class": "b-db_entry-variant-list_item"})
         except:
-            continue
+            print("Not found Staff div_id")
+            div_id =[]
         try:
             div_name = div_authors.findAll("span", {"class": "name-en"})
         except:
-            continue
+            print("Not found Staff div_name")
+            div_name = []
         try:
             div_name_rus = div_authors.findAll("span", {"class": "name-ru"})
         except:
-            continue
+            print("Not found Staff div_name_rus")
+            div_name_rus = []
         try:
             div_image_url = div_authors.findAll("div", {"class": "image linkeable bubbled"})
         except:
-            continue
+            print("Not found Staff div_image_url")
+            div_image_url = []
         for i in div_id:
             try:
                 id.append(i["data-id"])
             except:
-                id.append(None)
+                print("Not found id")
         for i in div_name:
             try:
                 name.append(i.text)
             except:
-                name.append(None)
+                print("Not found name")
         for i in div_name_rus:
             try:
                 name_rus.append(i.text)
             except:
-                name_rus.append(None)
+                print("Not found name_rus")
         for author_div in soup_resources.find_all("div", {"class": "b-db_entry-variant-list_item", "data-type": "person"}):
             a = [btag.text for btag in author_div.find_all("div", {"class": "b-tag"}) if len(btag["class"]) == 1]
             try:
                 occupations.append(", ".join(a))
                 # list comprehension, data-type, bd доделать исатфф с каэрэктер
             except:
-                occupations.append(None)
+                print("Not found occupations")
         for i in div_image_url:
             try:
                 image_url.append(i("img")[0]["src"])
             except:
-                image_url.append(None)
+                print("Not found image_url")
         data.append(
             Staff(
                 url=url,
@@ -210,7 +214,7 @@ def p_staff(url):
 
 def p_studio(url):
     data = []
-    while True:
+    while url:
         print("studio", url)
         response_url = requests.get(
             url,
@@ -232,18 +236,22 @@ def p_studio(url):
             url = div_studio[5]("a")[0]["href"]
         except:
             url = None
+            print("Not found url")
         try:
             id = url.split("/")[-1].split("-")[0]
         except:
             id = None
+            print("Not found id")
         try:
             name = div_studio[5]("img")[0]["alt"]
         except:
-            name =None
+            name = None
+            print("Not found name")
         try:
             image_url = div_studio[5]("img")[0]["src"]
         except:
             image_url = None
+            print("Not foundimage_url")
         data.append(
             Studio(
                 url=url,
