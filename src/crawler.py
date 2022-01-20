@@ -39,13 +39,232 @@ def anime_urls():
             for new in urls:
                 url = new["href"]
                 url_list.append(url)
-    return (url_list)
+    return url_list
+
+
+def p_characters(url):
+    data = []
+    while True:
+        id = []
+        name = []
+        name_rus = []
+        image_url = []
+        print("character", url)
+        response_url = requests.get(
+            url,
+            headers=headers,
+            timeout=10
+        )
+        if not response_url.ok:
+            time.sleep(2)
+            response_url = requests.get(
+                url,
+                headers=headers,
+                timeout=10
+            )
+            if not response_url.ok:
+                continue
+        resources_url = url + "/resources"
+        response_resources_url = requests.get(
+            resources_url,
+            headers=headers,
+            timeout=10
+        )
+        soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
+        try:
+            div_character = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class": "cc m0 to-process"})
+        except:
+            continue
+        try:
+            div_image_url = div_character.find("span", {"class": "image-cutter"})
+        except:
+            continue
+        try:
+            div_name = div_character.find("span", {"class": "name-en"})
+        except:
+            continue
+        try:
+            div_name_rus = div_character.find("span", {"class": "name-ru"})
+        except:
+            continue
+        for i in div_character:
+            try:
+                id.append(i["id"])
+            except:
+                id.append(None)
+        for i in div_name:
+            try:
+                name.append(i)
+            except:
+                name.append(None)
+        for i in div_name_rus:
+            try:
+                name_rus.append(i)
+            except:
+                name_rus.append(None)
+        for i in div_image_url:
+            try:
+                image_url.append(i["src"])
+            except:
+                image_url = None
+        data.append(
+            Character(
+                url=url,
+                id=id,
+                name=name,
+                name_rus=name_rus,
+                image_url=image_url
+            )
+        )
+        break
+    return data
+
+
+def p_staff(url):
+    data = []
+    while True:
+        id = []
+        name = []
+        name_rus = []
+        occupations = []
+        image_url = []
+        print("staff", url)
+        response_url = requests.get(
+            url,
+            headers=headers,
+            timeout=10
+        )
+        if not response_url.ok:
+            time.sleep(2)
+            response_url = requests.get(
+                url,
+                headers=headers,
+                timeout=10
+            )
+            if not response_url.ok:
+                continue
+        resources_url = url + "/resources"
+        response_resources_url = requests.get(
+            resources_url,
+            headers=headers,
+            timeout=10
+        )
+        soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
+        div_authors = soup_resources.find("div", {"class": "c-column c-authors block_m"})
+        try:
+            div_id = div_authors.findAll("div", {"class": "b-db_entry-variant-list_item"})
+        except:
+            continue
+        try:
+            div_name = div_authors.findAll("span", {"class": "name-en"})
+        except:
+            continue
+        try:
+            div_name_rus = div_authors.findAll("span", {"class": "name-ru"})
+        except:
+            continue
+        try:
+            div_image_url = div_authors.findAll("div", {"class": "image linkeable bubbled"})
+        except:
+            continue
+        for i in div_id:
+            try:
+                id.append(i["data-id"])
+            except:
+                id.append(None)
+        for i in div_name:
+            try:
+                name.append(i.text)
+            except:
+                name.append(None)
+        for i in div_name_rus:
+            try:
+                name_rus.append(i.text)
+            except:
+                name_rus.append(None)
+        for author_div in soup_resources.find_all("div", {"class": "b-db_entry-variant-list_item", "data-type": "person"}):
+            a = [btag.text for btag in author_div.find_all("div", {"class": "b-tag"}) if len(btag["class"]) == 1]
+            try:
+                occupations.append(", ".join(a))
+                # list comprehension, data-type, bd доделать исатфф с каэрэктер
+            except:
+                occupations.append(None)
+        for i in div_image_url:
+            try:
+                image_url.append(i("img")[0]["src"])
+            except:
+                image_url.append(None)
+        data.append(
+            Staff(
+                url=url,
+                id=id,
+                name=name,
+                name_rus=name_rus,
+                occupation=occupations,
+                image_url=image_url
+            )
+        )
+        break
+    return data
+
+
+def p_studio(url):
+    data = []
+    while True:
+        print("studio", url)
+        response_url = requests.get(
+            url,
+            headers=headers,
+            timeout=10
+        )
+        if not response_url.ok:
+            time.sleep(2)
+            response_url = requests.get(
+                url,
+                headers=headers,
+                timeout=10
+            )
+            if not response_url.ok:
+                continue
+        soup = BeautifulSoup(response_url.text, "html.parser")
+        div_studio = soup.findAll("div", {"class": "block"})
+        try:
+            url = div_studio[5]("a")[0]["href"]
+        except:
+            url = None
+        try:
+            id = url.split("/")[-1].split("-")[0]
+        except:
+            id = None
+        try:
+            name = div_studio[5]("img")[0]["alt"]
+        except:
+            name =None
+        try:
+            image_url = div_studio[5]("img")[0]["src"]
+        except:
+            image_url = None
+        data.append(
+            Studio(
+                url=url,
+                id=id,
+                name=name,
+                image_url=image_url
+            )
+        )
+        break
+    return data
 
 
 def parse_anime():
     data = []
     urls = anime_urls()
-    for url in urls:
+    for url in urls: #kings rating
+        related = []
+        scenes = []
+        videos = []
+        similar = []
+        print("anime", url)
         response_url = requests.get(
             url,
             headers=headers,
@@ -130,15 +349,22 @@ def parse_anime():
             timeout=10
         )
         soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
-        div_related = soup_resources.find("div", class_="c-column block_m").findAll(
-            class_="b-db_entry-variant-list_item")
-        div_scenes = soup_resources.find("div", class_="c-screenshots").find(class_="cc")
-        div_videos = soup_resources.find("div", class_="c-videos").find(class_="cc").findAll(class_="video-link")
-        div_similar = soup_resources.find("div", class_="cc cc-similar to-process").findAll(class_="title two_lined")
-        related = []
-        scenes = []
-        videos = []
-        similar = []
+        try:
+            div_related = soup_resources.find("div", class_="c-column block_m").findAll(class_="b-db_entry-variant-list_item")
+        except:
+            continue
+        try:
+            div_scenes = soup_resources.find("div", class_="c-screenshots").find(class_="cc")
+        except:
+            continue
+        try:
+            div_videos = soup_resources.find("div", class_="c-videos").find(class_="cc").findAll(class_="video-link")
+        except:
+            continue
+        try:
+            div_similar = soup_resources.find("div", class_="cc cc-similar to-process").findAll(class_="title two_lined")
+        except:
+            continue
         for i in div_related:
             try:
                 related.append(i["data-url"])
@@ -172,13 +398,21 @@ def parse_anime():
             name_alt = div_name_alt[2].text.strip()
         except:
             name_alt = None
+        studio: list[Studio]
+        author: list[Staff]
+        main_heroes: list[Character]
+        author = p_staff(url)
+        print(author)
+        studio = p_studio(url)
+        print(studio)
+        main_heroes = p_characters(url)
+        print(main_heroes)
         id = url.split("/")[-1].split("-")[0]
         data.append(
             Anime(
                 url=url,
                 id=id,  # url.split("/")[-1].split("-")[0]
                 name=name,
-                image_url=image_url,
                 name_rus=name_rus,
                 name_alt=name_alt,
                 type=type,
@@ -190,24 +424,29 @@ def parse_anime():
                 score=score,
                 rating=rating,
                 licensed_by=licensed_by,
+                studio=studio,
                 description=description,
                 related=related,
+                author=author,
+                main_heroes=main_heroes,
                 scenes=scenes,
                 videos=videos,
-                similar=similar
+                similar=similar,
+                image_url=image_url,
             )
         )
-    return (data)
+    return data
 
 
-def parse_character():
+def parse_characters():
     data = []
     urls = anime_urls()
-    id = []
-    name = []
-    name_rus = []
-    image_url = []
     for url in urls:
+        id = []
+        name = []
+        name_rus = []
+        image_url = []
+        print("character", url)
         response_url = requests.get(
             url,
             headers=headers,
@@ -229,80 +468,25 @@ def parse_character():
             timeout=10
         )
         soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
-        div_id = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class": "cc m0 to-process"})
-        div_image_url = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class": "cc m0 to-process"}).find("span", {"class": "image-cutter"})
-        div_name = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class": "cc m0 to-process"}).find("span", {"class": "name-en"})
-        div_name_rus = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class": "cc m0 to-process"}).find("span", {"class": "name-ru"})
         try:
-            for i in div_id:
-                id.append(i["id"])
+            div_character = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class": "cc m0 to-process"})
         except:
-            id.append(None)
+            continue
         try:
-            for i in div_name:
-                name.append(i)
+            div_image_url = div_character.find("span", {"class": "image-cutter"})
         except:
-            name.append(None)
+            continue
         try:
-            for i in div_name_rus:
-                name_rus.append(i)
+            div_name = div_character.find("span", {"class": "name-en"})
         except:
-            name_rus.append(None)
+            continue
         try:
-            for i in div_image_url:
-                image_url.append(i["src"])
+            div_name_rus = div_character.find("span", {"class": "name-ru"})
         except:
-            image_url.append(None)
-        data.append(
-            Character(
-                url=url,
-                id=id,
-                name=name,
-                name_rus=name_rus,
-                image_url=image_url
-            )
-        )
-        return(data)
-
-
-def parse_staff():
-    data = []
-    id = []
-    name = []
-    name_rus = []
-    occupation = []
-    image_url = []
-    urls = anime_urls()
-    for url in urls:
-        response_url = requests.get(
-            url,
-            headers=headers,
-            timeout=10
-        )
-        if not response_url.ok:
-            time.sleep(2)
-            response_url = requests.get(
-                url,
-                headers=headers,
-                timeout=10
-            )
-            if not response_url.ok:
-                continue
-        resources_url = url + "/resources"
-        response_resources_url = requests.get(
-            resources_url,
-            headers=headers,
-            timeout=10
-        )
-        soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
-        div_id = soup_resources.find("div", {"class": "c-column c-authors block_m"}).findAll("div",{"class": "b-db_entry-variant-list_item"})
-        div_name = soup_resources.find("div", {"class": "c-column c-authors block_m"}).findAll("span",{"class": "name-en"})
-        div_name_rus = soup_resources.find("div", {"class": "c-column c-authors block_m"}).findAll("span",{"class": "name-ru"})
-        div_occupation = soup_resources.find("div", {"class": "c-column c-authors block_m"}).findAll("div",{"class": "b-tag"})
-        div_image_url = soup_resources.find("div", {"class": "c-column c-authors block_m"}).findAll("div",{"class": "image linkeable bubbled"})
-        for i in div_id:
+            continue
+        for i in div_character:
             try:
-                id.append(i["data-id"])
+                id.append(i["id"])
             except:
                 id.append(None)
         for i in div_name:
@@ -315,11 +499,93 @@ def parse_staff():
                 name_rus.append(i)
             except:
                 name_rus.append(None)
-        for i in div_occupation:
+        for i in div_image_url:
             try:
-                occupation.append(i.text)
+                image_url.append(i["src"])
             except:
-                occupation.append(None)
+                image_url = None
+        data.append(
+            Character(
+                url=url,
+                id=id,
+                name=name,
+                name_rus=name_rus,
+                image_url=image_url
+            )
+        )
+    return data
+
+
+def parse_staff():
+    data = []
+    urls = anime_urls()
+    for url in urls:
+        id = []
+        name = []
+        name_rus = []
+        occupations = []
+        image_url = []
+        print("staff", url)
+        response_url = requests.get(
+            url,
+            headers=headers,
+            timeout=10
+        )
+        if not response_url.ok:
+            time.sleep(2)
+            response_url = requests.get(
+                url,
+                headers=headers,
+                timeout=10
+            )
+            if not response_url.ok:
+                continue
+        resources_url = url + "/resources"
+        response_resources_url = requests.get(
+            resources_url,
+            headers=headers,
+            timeout=10
+        )
+        soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
+        div_authors = soup_resources.find("div", {"class": "c-column c-authors block_m"})
+        try:
+            div_id = div_authors.findAll("div", {"class": "b-db_entry-variant-list_item"})
+        except:
+            continue
+        try:
+            div_name = div_authors.findAll("span", {"class": "name-en"})
+        except:
+            continue
+        try:
+            div_name_rus = div_authors.findAll("span", {"class": "name-ru"})
+        except:
+            continue
+        try:
+            div_image_url = div_authors.findAll("div", {"class": "image linkeable bubbled"})
+        except:
+            continue
+        for i in div_id:
+            try:
+                id.append(i["data-id"])
+            except:
+                id.append(None)
+        for i in div_name:
+            try:
+                name.append(i.text)
+            except:
+                name.append(None)
+        for i in div_name_rus:
+            try:
+                name_rus.append(i.text)
+            except:
+                name_rus.append(None)
+        for author_div in soup_resources.find_all("div", {"class": "b-db_entry-variant-list_item", "data-type": "person"}):
+            a = [btag.text for btag in author_div.find_all("div", {"class": "b-tag"}) if len(btag["class"]) == 1]
+            try:
+                occupations.append(", ".join(a))
+                # list comprehension, data-type, bd доделать исатфф с каэрэктер
+            except:
+                occupations.append(None)
         for i in div_image_url:
             try:
                 image_url.append(i("img")[0]["src"])
@@ -331,18 +597,19 @@ def parse_staff():
                 id=id,
                 name=name,
                 name_rus=name_rus,
-                occupation=occupation,
+                occupation=occupations,
                 image_url=image_url
             )
         )
-        return(data)
+        print(data)
+    return data
 
 
 def parse_studio():
     data = []
     urls = anime_urls()
     for url in urls:
-        print(url)
+        print("studio", url)
         response_url = requests.get(
             url,
             headers=headers,
@@ -359,19 +626,22 @@ def parse_studio():
                 continue
         soup = BeautifulSoup(response_url.text, "html.parser")
         div_studio = soup.findAll("div", {"class": "block"})
-        print(div_studio)
         try:
             url = div_studio[5]("a")[0]["href"]
-            id = url.split("/")[-1].split("-")[0]
-            name = div_studio[5]("img")[0]["alt"]
-            try:
-                image_url = div_studio[5]("img")[0]["src"]
-            except:
-                image_url = None
         except:
             url = None
+        try:
+            id = url.split("/")[-1].split("-")[0]
+        except:
             id = None
-            name = None
+        try:
+            name = div_studio[5]("img")[0]["alt"]
+        except:
+            name =None
+        try:
+            image_url = div_studio[5]("img")[0]["src"]
+        except:
+            image_url = None
         data.append(
             Studio(
                 url=url,
@@ -380,9 +650,11 @@ def parse_studio():
                 image_url=image_url
             )
         )
-        return(data)
+    return data
+
 
 
 if __name__ == "__main__":
-    start = anime_name()
-    print(start)
+    start_anime = parse_anime()
+    print(start_anime)
+

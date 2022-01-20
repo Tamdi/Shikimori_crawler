@@ -1,0 +1,99 @@
+syntax = "proto3";
+service AnimeCrawler {
+
+    rpc GetAnime (AnimeRequest) returns (AnimeResponse){}
+    rpc GetStaff (StaffRequest) returns (StaffResponse){}
+    rpc GetCharacters (CharactersRequest) returns (CharactersResponse){}
+    rpc GetStudio (StudioRequest) returns (StudioResponse){}
+
+}
+
+
+message AnimeRequest{
+    optional int32 id = 1;
+}
+
+
+message AnimeResponse{
+    repeated Anime anime = 1;
+}
+
+message Anime {
+    string url = 1;
+    string id = 2;
+    string name = 3;
+    string name_rus = 4;
+    string name_alt = 5;
+    string type = 6;
+    string total_episodes = 7;
+    string current_episodes = 8;
+    string next_episode_date = 9;
+    string started = 10;
+    string genres = 11;
+    string score = 12;
+    string rating = 13;
+    string licensed_by = 14;
+    string studio = 15;
+    string description = 16;
+    string related = 17;
+    string author = 18;
+    string main_heroes = 19;
+    string scenes = 20;
+    string videos = 21;
+    string similar = 22;
+    string image_url = 23;
+}
+
+message StaffRequest{
+    optional int32 id = 1;
+}
+
+
+message StaffResponse{
+    repeated Staff staff = 1;
+}
+
+
+message Staff {
+    string url = 1;
+    string id = 2;
+    string name = 3;
+    string name_rus = 4;
+    string occupation = 5;
+    string image_url = 6;
+}
+
+
+message CharactersRequest{
+    optional int32 id = 1;
+}
+
+
+message CharactersResponse{
+    repeated Characters characters = 1;
+}
+
+message Characters {
+    string url = 1;
+    string id = 2;
+    string name = 3;
+    string name_rus = 4;
+    string image_url = 5;
+}
+
+message StudioRequest{
+    optional int32 id = 1;
+}
+
+
+message StudioResponse{
+    repeated Studio studio = 1;
+}
+
+
+message Studio {
+    string url = 1;
+    string id = 2;
+    string name = 3;
+    string image_url = 4;
+}
