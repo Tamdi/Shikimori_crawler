@@ -43,7 +43,7 @@ def return_anime():
             )
 
         result = json.dumps(anime, ensure_ascii=False)
-        saver_anime(result)
+        # saver_anime(result)
         return result
 
 
@@ -133,4 +133,4 @@ def get_saved_studio():
 
 if __name__ == "__main__":
     print("Started")
-    run(host='0.0.0.0', port=8082)
+    run(host='0.0.0.0', port=8083)

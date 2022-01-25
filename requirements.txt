@@ -3,3 +3,7 @@ pydantic~=1.8.2
 requests~=2.26.0
 bs4~=0.0.1
 beautifulsoup4~=4.10.0
+bottle~=0.12.19
+grpcio~=1.43.0
+grpcio-tools~=1.43.0
+protobuf~=3.19.1

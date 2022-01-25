@@ -26,14 +26,14 @@ class Service(AnimeCrawlerServicer):
                     score=n.score,
                     rating=n.rating,
                     licensed_by=n.licensed_by,
-                    studio=n.studio,
+                    # studio=n.studio,
                     description=n.description,
-                    related=n.related,
-                    author=n.author,
-                    main_heroes=n.main_heroes,
-                    scenes=n.scenes,
-                    videos=n.videos,
-                    similar=n.similar,
+                    # related=n.related,
+                    # author=n.author,
+                    # main_heroes=n.main_heroes,
+                    # scenes=n.scenes,
+                    # videos=n.videos,
+                    # similar=n.similar,
                     image_url=n.image_url
                 )
             )

@@ -33,14 +33,14 @@ message Anime {
     string score = 12;
     string rating = 13;
     string licensed_by = 14;
-    string studio = 15;
+    repeated string studio = 15;
     string description = 16;
-    string related = 17;
-    string author = 18;
-    string main_heroes = 19;
-    string scenes = 20;
-    string videos = 21;
-    string similar = 22;
+    repeated string related = 17;
+    repeated string author = 18;
+    repeated string main_heroes = 19;
+    repeated string scenes = 20;
+    repeated string videos = 21;
+    repeated string similar = 22;
     string image_url = 23;
 }
 
@@ -56,11 +56,11 @@ message StaffResponse{
 
 message Staff {
     string url = 1;
-    string id = 2;
-    string name = 3;
-    string name_rus = 4;
-    string occupation = 5;
-    string image_url = 6;
+    repeated string id = 2;
+    repeated string name = 3;
+    repeated string name_rus = 4;
+    repeated string occupation = 5;
+    repeated string image_url = 6;
 }
 
 
@@ -75,10 +75,10 @@ message CharactersResponse{
 
 message Characters {
     string url = 1;
-    string id = 2;
-    string name = 3;
-    string name_rus = 4;
-    string image_url = 5;
+    repeated string id = 2;
+    repeated string name = 3;
+    repeated string name_rus = 4;
+    repeated string image_url = 5;
 }
 
 message StudioRequest{
