@@ -1,6 +1,7 @@
 import grpc
 from src.proto.shikimori_pb2_grpc import AnimeCrawlerServicer, add_AnimeCrawlerServicer_to_server
 from src.proto.shikimori_pb2 import AnimeResponse, Anime, StaffResponse, Staff, StudioResponse, Studio, CharactersResponse, Characters
+from config import INSECURE_PORT
 from crawler import parse_anime, parse_staff, parse_studio, parse_characters
 from concurrent import futures
 
@@ -96,7 +97,7 @@ class Service(AnimeCrawlerServicer):
 if __name__ == "__main__":
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
     add_AnimeCrawlerServicer_to_server(Service(), server)
-    server.add_insecure_port('[::]:8080')
+    server.add_insecure_port(INSECURE_PORT)
     print("Starting grpc server...")
     server.start()
     server.wait_for_termination()

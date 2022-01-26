@@ -1,10 +1,11 @@
 import grpc
 from src.proto.shikimori_pb2_grpc import AnimeCrawlerStub
 from src.proto.shikimori_pb2 import AnimeRequest, StudioRequest, StaffRequest, CharactersRequest
+from config import INSECURE_PORT
 
 
 if __name__ == '__main__':
-    with grpc.insecure_channel("[::]:8080") as channel:
+    with grpc.insecure_channel(INSECURE_PORT) as channel:
         stub = AnimeCrawlerStub(channel)
         response_anime: AnimeRequest = stub.GetAnime(AnimeRequest(id=1))
         for n in response_anime.anime:

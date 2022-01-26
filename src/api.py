@@ -2,6 +2,7 @@ import grpc
 import json
 from src.proto.shikimori_pb2_grpc import AnimeCrawlerStub
 from src.proto.shikimori_pb2 import AnimeRequest, StudioRequest, StaffRequest, CharactersRequest
+from config import API_PORT, API_HOST
 from bottle import get, run
 from db import saver_character, saver_staff, saver_studio, saver_anime, get_data_anime, get_data_character, get_data_studio, get_data_staff
 
@@ -66,7 +67,7 @@ def return_staff():
                 }
             )
         result = json.dumps(staff, ensure_ascii=False)
-        saver_staff(result)
+        # saver_staff(result)
         return result
 
 
@@ -133,4 +134,4 @@ def get_saved_studio():
 
 if __name__ == "__main__":
     print("Started")
-    run(host='0.0.0.0', port=8083)
+    run(host=API_HOST, port=API_PORT)
