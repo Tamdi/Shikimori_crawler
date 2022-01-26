@@ -43,9 +43,9 @@ def return_anime():
                 }
             )
 
-        result = json.dumps(anime, ensure_ascii=False)
+        # result = json.dumps(anime, ensure_ascii=False)
         # saver_anime(result)
-        return result
+        return anime
 
 
 @get('/staff')

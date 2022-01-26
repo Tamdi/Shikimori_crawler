@@ -4,8 +4,8 @@ API_PORT = "8083"
 INSECURE_PORT = "[::]:8080"
 PORT = 8088
 POSTGRES_URL = 'postgresql://postgres:1@localhost:5432/postgres'
-ANIME_TABLE = "Anime"
-CHARACTER_TABLE = "Character"
-STUDIO_TABLE = "Studio"
-STAFF_TABLE = "Staff"
+ANIME_TABLE = "anime"
+CHARACTER_TABLE = "character"
+STUDIO_TABLE = "studio"
+STAFF_TABLE = "staff"
 

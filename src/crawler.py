@@ -222,12 +222,12 @@ def p_studio(url):
     try:
         name = div_studio[5]("img")[0]["alt"]
     except IndexError:
-        print("IndexError: list index out of range (p_studio: total_episodes) in url:", url)
+        print("IndexError: list index out of range (p_studio: name) in url:", url)
         name = ""
     try:
         image_url = div_studio[5]("img")[0]["src"]
     except IndexError:
-        print("IndexError: list index out of range (p_studio: total_episodes) in url:", url)
+        print("IndexError: list index out of range (p_studio: image_url) in url:", url)
         image_url = ""
 
     data.append(
@@ -405,11 +405,11 @@ def parse_anime():
                 score=score,
                 rating=rating,
                 licensed_by=licensed_by,
-                # studio=studio,
+                studio=studio,
                 description=description,
                 related=related,
-                # author=author,
-                # main_heroes=main_heroes,
+                author=author,
+                main_heroes=main_heroes,
                 scenes=scenes,
                 videos=videos,
                 similar=similar,
@@ -591,23 +591,28 @@ def parse_studio():
                 timeout=10
             )
             if not response_url.ok:
-                print("Could not get response (p_studio) for url: ", url)
+                print("Could not get response (parse_studio) for url: ", url)
                 return data
                 # raise Exception("Could not get url's response (p_studio)")
 
         soup = BeautifulSoup(response_url.text, "html.parser")
         div_studio = soup.findAll("div", {"class": "block"})
-        url = div_studio[5]("a")[0]["href"] if div_studio[5]("a")[0]["href"] else None
-        id = url.split("/")[-1].split("-")[0] if url.split("/")[-1].split("-")[0] else None
-        name = ""
+        try:
+            url = div_studio[5]("a")[0]["href"]
+            id = url.split("/")[-1].split("-")[0]
+        except IndexError:
+            print("IndexError: list index out of range (parse_studio: url, id) in url:", url)
+            url = ""
+            id = ""
         try:
             name = div_studio[5]("img")[0]["alt"]
         except IndexError:
-            print("IndexError: list index out of range (p_studio: total_episodes) in url:", url)
+            print("IndexError: list index out of range (parse_studio: name) in url:", url)
+            name = ""
         try:
             image_url = div_studio[5]("img")[0]["src"]
         except IndexError:
-            print("IndexError: list index out of range (p_studio: total_episodes) in url:", url)
+            print("IndexError: list index out of range (parse_studio: image_url) in url:", url)
             image_url = ""
 
         data.append(

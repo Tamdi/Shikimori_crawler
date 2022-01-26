@@ -76,10 +76,10 @@ def saver_studio(studio_list):
     anime_list = json.loads(studio_list)
     for new in anime_list:
         result = anime_model.insert().values(
-            id=new.id,
-            url=new.url,
-            name=new.name,
-            image_url=new.image_url
+            id=new["id"],
+            url=new["url"],
+            name=new["name"],
+            image_url=new["image_url"]
         )
         conn = engine.connect()
     try:
