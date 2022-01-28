@@ -1,4 +1,5 @@
 import grpc
+import logging
 from src.proto.shikimori_pb2_grpc import AnimeCrawlerStub
 from src.proto.shikimori_pb2 import AnimeRequest, StudioRequest, StaffRequest, CharactersRequest
 from config import INSECURE_PORT
@@ -6,6 +7,7 @@ from config import INSECURE_PORT
 
 if __name__ == '__main__':
     with grpc.insecure_channel(INSECURE_PORT) as channel:
+        logging.info("Starting client_server...")
         stub = AnimeCrawlerStub(channel)
         response_anime: AnimeRequest = stub.GetAnime(AnimeRequest(id=1))
         for n in response_anime.anime:

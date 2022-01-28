@@ -50,4 +50,3 @@ class Anime(BaseModel):
     videos: Optional[List[str]]
     similar: Optional[List[str]]
     image_url: str
-

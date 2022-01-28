@@ -33,11 +33,11 @@ message Anime {
     string score = 12;
     string rating = 13;
     string licensed_by = 14;
-    repeated string studio = 15;
+    repeated Studio studio = 15;
     string description = 16;
     repeated string related = 17;
-    repeated string author = 18;
-    repeated string main_heroes = 19;
+    repeated Staff author = 18;
+    repeated Characters main_heroes = 19;
     repeated string scenes = 20;
     repeated string videos = 21;
     repeated string similar = 22;

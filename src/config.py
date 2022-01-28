@@ -8,4 +8,3 @@ ANIME_TABLE = "anime"
 CHARACTER_TABLE = "character"
 STUDIO_TABLE = "studio"
 STAFF_TABLE = "staff"
-

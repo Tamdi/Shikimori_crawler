@@ -1,5 +1,6 @@
 import grpc
 import json
+import logging
 from src.proto.shikimori_pb2_grpc import AnimeCrawlerStub
 from src.proto.shikimori_pb2 import AnimeRequest, StudioRequest, StaffRequest, CharactersRequest
 from config import API_PORT, API_HOST
@@ -133,5 +134,5 @@ def get_saved_studio():
 
 
 if __name__ == "__main__":
-    print("Started")
+    logging.info("Starting api...")
     run(host=API_HOST, port=API_PORT)

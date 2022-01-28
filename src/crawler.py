@@ -1,5 +1,6 @@
 import time
 import requests
+import logging
 from models import Anime, Character, Staff, Studio
 from config import ANIME_URL
 from bs4 import BeautifulSoup
@@ -31,15 +32,12 @@ def anime_urls():
                 headers=headers,
                 timeout=10
             )
-            # try:
             soup = BeautifulSoup(response.json()["content"], "html.parser")
-            # except Exception:
-            #     print("In 'anime_urls' soup could n't get")
             urls = soup.findAll("a", {"class": "cover anime-tooltip"})
             for new in urls:
                 url = new["href"]
                 url_list.append(url)
-    return url_list[0:1]
+    return url_list
 
 
 def p_characters(url):
@@ -61,7 +59,8 @@ def p_characters(url):
             timeout=10
         )
         if not response_url.ok:
-            print("Could not get response (p_characters) for url:", url)
+            # print("Could not get response (p_characters) for url:", url)
+            logging.error('TypeError. Could not get response (p_characters) for url:', url)
             return data
             # raise Exception("Could not get url's response (p_characters)")
     resources_url = url + "/resources"
@@ -73,7 +72,8 @@ def p_characters(url):
     soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
 
     try:
-        div_character = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class": "cc m0 to-process"})
+        div_character = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class":
+                                                                                                "cc m0 to-process"})
         if div_character.find("span", {"class": "name-en"}):
             div_name = div_character.findAll("span", {"class": "name-en"})
         else:
@@ -87,7 +87,9 @@ def p_characters(url):
         else:
             div_image_url = []
     except AttributeError:
-        print("AttributeError: 'NoneType' object has no attribute 'text' (p_characters: div_authors) in url:", url)
+        logging.error(
+            "AttributeError: 'NoneType' object has no attribute 'text' (p_characters: div_authors) in url:", url)
+        # print("AttributeError: 'NoneType' object has no attribute 'text' (p_characters: div_authors) in url:", url)
         div_character = []
         div_name = []
         div_name_rus = []
@@ -133,7 +135,9 @@ def p_staff(url):
             timeout=10
         )
         if not response_url.ok:
-            print("Could not get response (p_staff) for url: ", url)
+            logging.error("TypeError. Could not get response (p_staff) for url: ", url)
+            # print("Could not get response (p_staff) for url: ", url)
+
             return data
             # raise Exception("Could not get url's response (p_staff)")
     resources_url = url + "/resources"
@@ -148,22 +152,26 @@ def p_staff(url):
     try:
         div_id = div_authors.findAll("div", {"class": "b-db_entry-variant-list_item"})
     except AttributeError:
-        print("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_authors) in url:", url)
+        logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_authors) in url:", url)
+        # print("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_authors) in url:", url)
         div_id = []
     try:
         div_name = div_authors.findAll("span", {"class": "name-en"})
     except AttributeError:
-        print("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_name) in url:", url)
+        logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_name) in url:", url)
+        # print("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_name) in url:", url)
         div_name = []
     try:
         div_name_rus = div_authors.findAll("span", {"class": "name-ru"})
     except AttributeError:
-        print("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_name_rus) in url:", url)
+        logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_name_rus) in url:", url)
+        # print("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_name_rus) in url:", url)
         div_name_rus = []
     try:
         div_image_url = div_authors.findAll("div", {"class": "image linkeable bubbled"})
     except AttributeError:
-        print("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_image_url) in url:", url)
+        logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_image_url) in url:", url)
+        # print("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_image_url) in url:", url)
         div_image_url = []
 
     for i in div_id:
@@ -206,7 +214,8 @@ def p_studio(url):
             timeout=10
         )
         if not response_url.ok:
-            print("Could not get response (p_studio) for url: ", url)
+            logging.error("Could not get response (p_studio) for url: ", url)
+            # print("Could not get response (p_studio) for url: ", url)
             return data
             # raise Exception("Could not get url's response (p_studio)")
 
@@ -216,18 +225,21 @@ def p_studio(url):
         url = div_studio[5]("a")[0]["href"]
         id = url.split("/")[-1].split("-")[0]
     except IndexError:
-        print("IndexError: list index out of range (p_studio: url, id) in url:", url)
+        logging.error("IndexError: list index out of range (p_studio: url, id) in url:", url)
+        # print("IndexError: list index out of range (p_studio: url, id) in url:", url)
         url = ""
         id = ""
     try:
         name = div_studio[5]("img")[0]["alt"]
     except IndexError:
-        print("IndexError: list index out of range (p_studio: name) in url:", url)
+        logging.error("IndexError: list index out of range (p_studio: name) in url:", url)
+        # print("IndexError: list index out of range (p_studio: name) in url:", url)
         name = ""
     try:
         image_url = div_studio[5]("img")[0]["src"]
     except IndexError:
-        print("IndexError: list index out of range (p_studio: image_url) in url:", url)
+        logging.error("IndexError: list index out of range (p_studio: image_url) in url:", url)
+        # print("IndexError: list index out of range (p_studio: image_url) in url:", url)
         image_url = ""
 
     data.append(
@@ -262,7 +274,8 @@ def parse_anime():
                 timeout=10
             )
             if not response_url.ok:
-                print("Could not get response (parse_anime) for url:", url)
+                logging.error("Could not get response (parse_anime) for url:", url)
+                # print("Could not get response (parse_anime) for url:", url)
                 continue
                 # raise Exception("Could not get url's response (parse_anime)")
 
@@ -278,7 +291,8 @@ def parse_anime():
         try:
             total_episodes = div[1].text.strip().split(" /")[1]
         except IndexError:
-            print("IndexError: list index out of range (parse_anime: total_episodes) in url:", url)
+            logging.error("IndexError: list index out of range (parse_anime: total_episodes) in url:", url)
+            # print("IndexError: list index out of range (parse_anime: total_episodes) in url:", url)
             total_episodes = ""
         next_episode_date = div[2].text.strip() if div[2].text.strip() else None
         started = div[4].text.strip() if div[4].text.strip() else None
@@ -302,12 +316,14 @@ def parse_anime():
         try:
             rating = div[6].text.strip()
         except IndexError:
-            print("IndexError: list index out of range (parse_anime: rating) in url:", url)
+            logging.error("IndexError: list index out of range (parse_anime: rating) in url:", url)
+            # print("IndexError: list index out of range (parse_anime: rating) in url:", url)
             rating = ""
         try:
             licensed_by = div[7].text.strip()
         except IndexError:
-            print("IndexError: list index out of range (parse_anime: licensed_by) in url:", url)
+            logging.error("IndexError: list index out of range (parse_anime: licensed_by) in url:", url)
+            # print("IndexError: list index out of range (parse_anime: licensed_by) in url:", url)
             licensed_by = ""
 
         div_name_rus = soup.find("header", {"class": "head"})
@@ -320,14 +336,17 @@ def parse_anime():
         try:
             score = div_rating.text.strip()
         except AttributeError:
-            print("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: score) in url:", url)
+            logging.error("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: score) in url:", url)
+            # print("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: score) in url:", url)
             score = ""
 
         div_description = soup.find("div", {"class": "b-text_with_paragraphs"})
         try:
             description = div_description.text.strip()
         except AttributeError:
-            print("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: description) in url: ", url)
+            logging.error(
+                "AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: description) in url: ", url)
+            # print("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: description) in url: ", url)
             description = ""
 
         resources_url = url + "/resources"
@@ -338,24 +357,33 @@ def parse_anime():
         )
         soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
         try:
-            div_related = soup_resources.find("div", class_="c-column block_m").findAll(class_="b-db_entry-variant-list_item")
+            div_related = soup_resources.find("div", class_="c-column block_m").findAll(class_=
+                                                                                        "b-db_entry-variant-list_item")
         except AttributeError:
-            print("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
+            logging.error(
+                "AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
+            # print("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
             div_related = []
         try:
             div_scenes = soup_resources.find("div", class_="c-screenshots").find(class_="cc")
         except AttributeError:
-            print("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
+            logging.error(
+                "AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
+            # print("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
             div_scenes = []
         try:
             div_videos = soup_resources.find("div", class_="c-videos").find(class_="cc").findAll(class_="video-link")
         except AttributeError:
-            print("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
+            logging.error(
+                "AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
+            # print("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
             div_videos = []
         try:
             div_similar = soup_resources.find("div", class_="cc cc-similar to-process").findAll(class_="title two_lined")
         except AttributeError:
-            print("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_image_url) in url:", url)
+            logging.error(
+                "AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_image_url) in url:", url)
+            # print("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_image_url) in url:", url)
             div_similar = []
 
         for i in div_related:
@@ -367,7 +395,8 @@ def parse_anime():
         for i in div_similar:
             similar.append(i["href"])
 
-        div_other_names = soup.find("span", {"class": "other-names"}) if soup.find("span", {"class": "other-names"}) else None
+        div_other_names = soup.find(
+            "span", {"class": "other-names"}) if soup.find("span", {"class": "other-names"}) else None
         url_name_alt = div_other_names["data-clickloaded-url"]
         response_url_name_alt = requests.get(
             url_name_alt,
@@ -379,7 +408,8 @@ def parse_anime():
         try:
             name_alt = div_name_alt[2].text.strip()
         except IndexError:
-            print("IndexError: list index out of range (parse_anime: name_alt) in url:", url)
+            logging.error("IndexError: list index out of range (parse_anime: name_alt) in url:", url)
+            # print("IndexError: list index out of range (parse_anime: name_alt) in url:", url)
             name_alt = ""
 
         studio: list[Studio]
@@ -629,4 +659,3 @@ def parse_studio():
 if __name__ == "__main__":
     start_anime = parse_anime()
     print(start_anime)
-

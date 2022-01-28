@@ -240,4 +240,3 @@ def get_data_character():
         }
         res.append(data)
     return res
-
