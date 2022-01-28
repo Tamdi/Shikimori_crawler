@@ -134,5 +134,6 @@ def get_saved_studio():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     logging.info("Starting api...")
     run(host=API_HOST, port=API_PORT)
