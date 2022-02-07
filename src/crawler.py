@@ -2,18 +2,8 @@ import time
 import requests
 import logging
 from models import Anime, Character, Staff, Studio
-from config import ANIME_URL
+from config import ANIME_URL, headers
 from bs4 import BeautifulSoup
-
-headers = {
-    'authority': 'shikimori.one',
-    'cache-control': 'max-age=0',
-    'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0) Gecko/20100101 Firefox/76.0 SEB',
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,'
-              'application/signed-exchange;v=b3;q=0.9',
-    'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-}
 
 
 def anime_urls():
@@ -37,7 +27,7 @@ def anime_urls():
             for new in urls:
                 url = new["href"]
                 url_list.append(url)
-    return url_list
+    return url_list[0:1]
 
 
 def p_characters(url):
@@ -59,7 +49,6 @@ def p_characters(url):
             timeout=10
         )
         if not response_url.ok:
-            # print("Could not get response (p_characters) for url:", url)
             logging.error('TypeError. Could not get response (p_characters) for url:', url)
             return data
             # raise Exception("Could not get url's response (p_characters)")

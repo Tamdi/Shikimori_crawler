@@ -16,6 +16,27 @@ def return_anime():
             AnimeRequest())
         anime = []
         for n in response_anime.anime:
+            studio_list_of_dict = [{
+                "url": _studio.url,
+                'id': _studio.id,
+                'name': _studio.name,
+                'image_url': _studio.image_url,
+            }for _studio in n.studio]
+            character_list_of_dict = [{
+                "url": _main_heroes.url,
+                'id': _main_heroes.id,
+                'name': _main_heroes.name,
+                'name_rus': _main_heroes.name_rus,
+                'image_url': _main_heroes.image_url,
+            } for _main_heroes in n.main_heroes]
+            staff_list_of_dict = [{
+                "url": _author.url,
+                'id': _author.id,
+                'name': _author.name,
+                'name_rus': _author.name_rus,
+                'occupation': _author.occupation,
+                'image_url': _author.image_url,
+            } for _author in n.author]
             anime.append(
                 {
                     'url': n.url,
@@ -32,11 +53,11 @@ def return_anime():
                     'score': n.score,
                     'rating': n.rating,
                     'licensed_by': n.licensed_by,
-                    'studio': n.studio,
+                    'studio': studio_list_of_dict,
                     'description': n.description,
                     'related': n.related,
-                    'author': n.author,
-                    'main_heroes': n.main_heroes,
+                    'author': staff_list_of_dict,
+                    'main_heroes': character_list_of_dict,
                     'scenes': n.scenes,
                     'videos': n.videos,
                     'similar': n.similar,
@@ -44,9 +65,9 @@ def return_anime():
                 }
             )
 
-        # result = json.dumps(anime, ensure_ascii=False)
+        result = json.dumps(anime, ensure_ascii=False)
         # saver_anime(result)
-        return anime
+        return result
 
 
 @get('/staff')
