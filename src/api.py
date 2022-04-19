@@ -65,7 +65,7 @@ def return_anime():
                 }
             )
 
-        result = json.dumps(anime, ensure_ascii=False)
+        result = json.dumps(json.loads(f'{anime}'.replace("\'", '\"')), ensure_ascii=False)
         # saver_anime(result)
         return result
 
@@ -88,7 +88,7 @@ def return_staff():
                     'image_url': n.image_url,
                 }
             )
-        result = json.dumps(staff, ensure_ascii=False)
+        result = json.dumps(json.loads(f'{staff}'.replace("\'", '\"')), ensure_ascii=False)
         # saver_staff(result)
         return result
 
@@ -114,7 +114,7 @@ def return_studio():
         return result
 
 
-@get('/staff')
+@get('/character')
 def return_character():
     with grpc.insecure_channel("localhost:8080") as channel:
         stub = AnimeCrawlerStub(channel)
@@ -132,8 +132,8 @@ def return_character():
 
                 }
             )
-        result = json.dumps(characters, ensure_ascii=False)
-        saver_character(result)
+        result = json.dumps(json.loads(f'{characters}'.replace("\'", '\"')), ensure_ascii=False)
+        # saver_character(result)
         return result
 
 
@@ -141,13 +141,16 @@ def return_character():
 def get_saved_anime():
     return json.dumps(get_data_anime(), ensure_ascii=False)
 
+
 @get('/saved_characters')
 def get_saved_characters():
     return json.dumps(get_data_character(), ensure_ascii=False)
 
+
 @get('/saved_staff')
 def get_saved_staff():
     return json.dumps(get_data_staff(), ensure_ascii=False)
+
 
 @get('/saved_studio')
 def get_saved_studio():

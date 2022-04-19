@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 
 
 def anime_urls():
+    logging.info('starting search anime urls')
     url_list = []
     response = requests.get(
         ANIME_URL + "1.json",
@@ -14,8 +15,10 @@ def anime_urls():
         timeout=10
     )
     if response.ok:
+        print(response.json())
         json_data = response.json()
         pages_count = json_data["pages_count"]
+        logging.info(f'find {pages_count} pages')
         for _i in range(pages_count):
             response = requests.get(
                 ANIME_URL + str(_i) + ".json",
@@ -27,7 +30,8 @@ def anime_urls():
             for new in urls:
                 url = new["href"]
                 url_list.append(url)
-    return url_list[0:1]
+        return url_list[:10]
+    return []
 
 
 def p_characters(url):
@@ -59,30 +63,12 @@ def p_characters(url):
         timeout=10
     )
     soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
-
-    try:
-        div_character = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class":
-                                                                                                "cc m0 to-process"})
-        if div_character.find("span", {"class": "name-en"}):
-            div_name = div_character.findAll("span", {"class": "name-en"})
-        else:
-            div_name = []
-        if div_character.find("span", {"class": "name-ru"}):
-            div_name_rus = div_character.findAll("span", {"class": "name-ru"})
-        else:
-            div_name_rus = []
-        if div_character.find("span", {"class": "image-cutter"}):
-            div_image_url = div_character.findAll("span", {"class": "image-cutter"})
-        else:
-            div_image_url = []
-    except AttributeError:
-        logging.error(
-            "AttributeError: 'NoneType' object has no attribute 'text' (p_characters: div_authors) in url:", url)
-        div_character = []
-        div_name = []
-        div_name_rus = []
-        div_image_url = []
-
+    if not soup_resources.find("div", {"class": "cc-characters"}):
+        return data
+    div_character = soup_resources.find("div", {"class": "cc-characters"}).find("div", {"class": "to-process"})
+    div_name = div_character.findAll("span", {"class": "name-en"})
+    div_name_rus = div_character.findAll("span", {"class": "name-ru"})
+    div_image_url = div_character.findAll("span", {"class": "image-cutter"})
     for i in div_character:
         id.append(i["id"])
     for i in div_name:
@@ -110,21 +96,20 @@ def p_staff(url):
     name_rus = []
     occupations = []
     image_url = []
-    response_url = requests.get(
-        url,
-        headers=headers,
-        timeout=10
-    )
-    if not response_url.ok:
-        time.sleep(2)
+    retries = 3
+    while retries:
+        retries = retries -1
         response_url = requests.get(
             url,
             headers=headers,
             timeout=10
         )
-        if not response_url.ok:
-            logging.error("TypeError. Could not get response (p_staff) for url: ", url)
-            return data
+        if response_url.ok:
+            break
+        time.sleep(2)
+    if not response_url.ok:
+        logging.error("TypeError. Could not get response (p_staff) for url: ", url)
+        return data
     resources_url = url + "/resources"
     response_resources_url = requests.get(
         resources_url,
@@ -134,51 +119,36 @@ def p_staff(url):
     soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
 
     div_authors = soup_resources.find("div", {"class": "c-column c-authors block_m"})
-    try:
+    if div_authors:
+
         div_id = div_authors.findAll("div", {"class": "b-db_entry-variant-list_item"})
-    except AttributeError:
-        logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_authors) in url:", url)
-        div_id = []
-    try:
         div_name = div_authors.findAll("span", {"class": "name-en"})
-    except AttributeError:
-        logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_name) in url:", url)
-        div_name = []
-    try:
         div_name_rus = div_authors.findAll("span", {"class": "name-ru"})
-    except AttributeError:
-        logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_name_rus) in url:", url)
-        div_name_rus = []
-    try:
         div_image_url = div_authors.findAll("div", {"class": "image linkeable bubbled"})
-    except AttributeError:
-        logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_image_url) in url:", url)
-        div_image_url = []
+        for i in div_id:
+            id.append(i["data-id"])
+        for i in div_name:
+            name.append(i.text)
+        for i in div_name_rus:
+            name_rus.append(i.text)
+        for author_div in soup_resources.find_all("div", {"class": "b-db_entry-variant-list_item", "data-type": "person"}):
+            a = [btag.text for btag in author_div.find_all("div", {"class": "b-tag"}) if len(btag["class"]) == 1]
+            occupations.append(", ".join(a))
+        for i in div_image_url:
+            image_url.append(i("img")[0]["src"])
 
-    for i in div_id:
-        id.append(i["data-id"])
-    for i in div_name:
-        name.append(i.text)
-    for i in div_name_rus:
-        name_rus.append(i.text)
-    for author_div in soup_resources.find_all("div", {"class": "b-db_entry-variant-list_item", "data-type": "person"}):
-        a = [btag.text for btag in author_div.find_all("div", {"class": "b-tag"}) if len(btag["class"]) == 1]
-        occupations.append(", ".join(a))
-    for i in div_image_url:
-        image_url.append(i("img")[0]["src"])
-
-    data.append(
-        Staff(
-            url=url,
-            id=id,
-            name=name,
-            name_rus=name_rus,
-            occupation=occupations,
-            image_url=image_url
+        data.append(
+            Staff(
+                url=url,
+                id=id,
+                name=name,
+                name_rus=name_rus,
+                occupation=occupations,
+                image_url=image_url
+            )
         )
-    )
-    return data
-
+        return data
+    return []
 
 def p_studio(url):
     data = []
@@ -200,32 +170,21 @@ def p_studio(url):
 
     soup = BeautifulSoup(response_url.text, "html.parser")
     div_studio = soup.findAll("div", {"class": "block"})
-    try:
-        url = div_studio[5]("a")[0]["href"]
+    if len(div_studio) >= 6:
+        if not div_studio[5].find("a"):
+            return data
+        url = div_studio[5].find("a")["href"]
         id = url.split("/")[-1].split("-")[0]
-    except IndexError:
-        logging.error("IndexError: list index out of range (p_studio: url, id) in url:", url)
-        url = ""
-        id = ""
-    try:
-        name = div_studio[5]("img")[0]["alt"]
-    except IndexError:
-        logging.error("IndexError: list index out of range (p_studio: name) in url:", url)
-        name = ""
-    try:
-        image_url = div_studio[5]("img")[0]["src"]
-    except IndexError:
-        logging.error("IndexError: list index out of range (p_studio: image_url) in url:", url)
-        image_url = ""
-
-    data.append(
-        Studio(
-            url=url,
-            id=id,
-            name=name,
-            image_url=image_url
+        name = div_studio[5].find("img")["alt"] if div_studio[5].find("img") else ""
+        image_url = div_studio[5].find("img")["src"] if div_studio[5].find("img") else ""
+        data.append(
+            Studio(
+                url=url,
+                id=id,
+                name=name,
+                image_url=image_url
+            )
         )
-    )
     return data
 
 
@@ -249,6 +208,7 @@ def parse_anime():
                 headers=headers,
                 timeout=10
             )
+            print(response_url.status_code)
             if not response_url.ok:
                 logging.error("Could not get response (parse_anime) for url:", url)
                 continue
@@ -262,11 +222,7 @@ def parse_anime():
         div = soup.findAll("div", {"class": "value"})
         type = div[0].text.strip() if div[0].text.strip() else None
         current_episodes = div[1].text.strip().split(" /")[0] if div[1].text.strip().split(" /")[0] else None
-        try:
-            total_episodes = div[1].text.strip().split(" /")[1]
-        except IndexError:
-            logging.error("IndexError: list index out of range (parse_anime: total_episodes) in url:", url)
-            total_episodes = ""
+        total_episodes = div[1].text.strip().split(" /")[1] if '/' in div[1].text else ""
         next_episode_date = div[2].text.strip() if div[2].text.strip() else None
         started = div[4].text.strip() if div[4].text.strip() else None
         genres = ""
@@ -286,36 +242,29 @@ def parse_anime():
                         genres = i.text + "; " + genres
                 else:
                     genres = ""
-        try:
+        if len(div) >= 8:
             rating = div[6].text.strip()
-        except IndexError:
-            logging.error("IndexError: list index out of range (parse_anime: rating) in url:", url)
-            rating = ""
-        try:
             licensed_by = div[7].text.strip()
-        except IndexError:
-            logging.error("IndexError: list index out of range (parse_anime: licensed_by) in url:", url)
+        else:
+            rating = ""
             licensed_by = ""
 
         div_name_rus = soup.find("header", {"class": "head"})
-        if div_name_rus.find('h1') is not None:
+        if div_name_rus.find('h1'):
             name_rus = div_name_rus.find('h1').text.strip().split(" /")[0]
         else:
             name_rus = ""
 
         div_rating = soup.find("div", {"class": "score-value score-9"})
-        try:
+        if div_rating:
             score = div_rating.text.strip()
-        except AttributeError:
-            logging.error("AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: score) in url:", url)
+        else:
             score = ""
 
         div_description = soup.find("div", {"class": "b-text_with_paragraphs"})
-        try:
+        if div_description:
             description = div_description.text.strip()
-        except AttributeError:
-            logging.error(
-                "AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: description) in url: ", url)
+        else:
             description = ""
 
         resources_url = url + "/resources"
@@ -332,25 +281,17 @@ def parse_anime():
             logging.error(
                 "AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
             div_related = []
-        try:
-            div_scenes = soup_resources.find("div", class_="c-screenshots").find(class_="cc")
-        except AttributeError:
-            logging.error(
-                "AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
-            div_scenes = []
-        try:
-            div_videos = soup_resources.find("div", class_="c-videos").find(class_="cc").findAll(class_="video-link")
-        except AttributeError:
-            logging.error(
-                "AttributeError: 'NoneType' object has no attribute 'text' (parse_anime: div_image_url) in url:", url)
-            div_videos = []
-        try:
-            div_similar = soup_resources.find("div", class_="cc cc-similar to-process").findAll(class_="title two_lined")
-        except AttributeError:
-            logging.error(
-                "AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_image_url) in url:", url)
-            div_similar = []
-
+        div_scenes = soup_resources.find("div", class_="c-screenshots"
+                                         ).find(class_="cc") if soup_resources.find(
+            "div", class_="c-screenshots") else []
+        div_videos = soup_resources.find(
+            "div", class_="c-videos").find(class_="cc").findAll(class_="video-link"
+                                                                ) if soup_resources.find(
+            "div", class_="c-videos") else []
+        div_similar = soup_resources.find(
+            "div", class_="cc cc-similar to-process").findAll(class_="title two_lined"
+                                                              ) if soup_resources.find(
+            "div", class_="cc cc-similar to-process") else []
         for i in div_related:
             related.append(i["data-url"])
         for i in div_scenes:
@@ -370,23 +311,14 @@ def parse_anime():
         )
         soup = BeautifulSoup(response_url_name_alt.text, "html.parser")
         div_name_alt = soup.findAll("div", {"class": "value"})
-        try:
-            name_alt = div_name_alt[2].text.strip()
-        except IndexError:
-            logging.error("IndexError: list index out of range (parse_anime: name_alt) in url:", url)
-            name_alt = ""
-
-        studio: list[Studio]
-        author: list[Staff]
-        main_heroes: list[Character]
+        name_alt = div_name_alt[2].text.strip() if len(div_name_alt) >= 3 else ""
         author = p_staff(url)
         studio = p_studio(url)
         main_heroes = p_characters(url)
-
         data.append(
             Anime(
                 url=url,
-                id=id,  # url.split("/")[-1].split("-")[0]
+                id=id,
                 name=name,
                 name_rus=name_rus,
                 name_alt=name_alt,
@@ -522,29 +454,12 @@ def parse_staff():
         soup_resources = BeautifulSoup(response_resources_url.text, "html.parser")
 
         div_authors = soup_resources.find("div", {"class": "c-column c-authors block_m"})
-        try:
-            div_id = div_authors.findAll("div", {"class": "b-db_entry-variant-list_item"})
-        except AttributeError:
-            logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_authors) in url:",
-                          url)
-            div_id = []
-        try:
-            div_name = div_authors.findAll("span", {"class": "name-en"})
-        except AttributeError:
-            logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_name) in url:", url)
-            div_name = []
-        try:
-            div_name_rus = div_authors.findAll("span", {"class": "name-ru"})
-        except AttributeError:
-            logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_name_rus) in url:",
-                          url)
-            div_name_rus = []
-        try:
-            div_image_url = div_authors.findAll("div", {"class": "image linkeable bubbled"})
-        except AttributeError:
-            logging.error("AttributeError: 'NoneType' object has no attribute 'text' (p_staff: div_image_url) in url:",
-                          url)
-            div_image_url = []
+        if not div_authors:
+            continue
+        div_id = div_authors.findAll("div", {"class": "b-db_entry-variant-list_item"})
+        div_name = div_authors.findAll("span", {"class": "name-en"})
+        div_name_rus = div_authors.findAll("span", {"class": "name-ru"})
+        div_image_url = div_authors.findAll("div", {"class": "image linkeable bubbled"})
 
         for i in div_id:
             id.append(i["data-id"])
